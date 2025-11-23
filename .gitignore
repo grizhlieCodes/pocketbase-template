@@ -1,0 +1,12 @@
+# PocketBase data directory (local development)
+pb_data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
