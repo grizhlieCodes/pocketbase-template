@@ -1,8 +1,16 @@
 # PocketBase Railway Template
 
-Deploy [PocketBase](https://pocketbase.io) to [Railway](https://railway.app) with one click.
+Deploy [PocketBase](https://pocketbase.io) to [Railway](https://railway.com) with one click.
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/pocketbase)
+
+## Features
+
+- Pinned PocketBase version via `PB_VERSION` (+ optional SHA256 verification)
+- Small runtime image (multi-stage Alpine build)
+- Non-root user for security
+- Proper signal handling with `tini`
+- `$PORT`-aware entrypoint (works with Railway automatically)
 
 ## Setup Instructions
 
@@ -11,7 +19,7 @@ Deploy [PocketBase](https://pocketbase.io) to [Railway](https://railway.app) wit
 Click the "Deploy on Railway" button above, or:
 
 1. Fork this repository
-2. Create a new project on [Railway](https://railway.app)
+2. Create a new project on [Railway](https://railway.com)
 3. Connect your forked repository
 
 ### 2. Configure Persistent Storage (Required)
@@ -21,21 +29,15 @@ Click the "Deploy on Railway" button above, or:
 1. Open the Railway Command Palette (`Cmd+K` on Mac, `Ctrl+K` on Windows/Linux)
 2. Select **"Create Volume"**
 3. Choose your PocketBase service
-4. Set the mount path to: `/pb/pb_data`
+4. Set the mount path to: `/data`
 
-### 3. Set Environment Variable
-
-Add the following environment variable to your service:
-
-| Variable | Value |
-|----------|-------|
-| `PORT` | `8080` |
-
-### 4. Generate Domain
+### 3. Generate Domain
 
 1. Go to your service **Settings**
 2. Click **"Generate Domain"** under Networking
 3. Your PocketBase instance will be available at `https://your-domain.railway.app`
+
+> **Note:** The `PORT` environment variable defaults to `8080` and is automatically handled by the container. You don't need to set it manually.
 
 ---
 
@@ -160,7 +162,7 @@ Or use Docker:
 
 ```bash
 docker build -t pocketbase .
-docker run -p 8080:8080 -v $(pwd)/pb_data:/pb/pb_data pocketbase
+docker run -p 8080:8080 -v $(pwd)/pb_data:/data pocketbase
 ```
 
 ---
@@ -169,8 +171,10 @@ docker run -p 8080:8080 -v $(pwd)/pb_data:/pb/pb_data pocketbase
 
 ```
 .
-├── Dockerfile          # PocketBase container configuration
+├── Dockerfile          # Multi-stage PocketBase container
+├── entrypoint.sh       # PORT-aware startup script
 ├── railway.json        # Railway deployment settings
+├── .dockerignore       # Docker build exclusions
 ├── pb_migrations/      # Database migrations (auto-generated)
 ├── pb_hooks/           # Custom JavaScript hooks
 └── README.md
