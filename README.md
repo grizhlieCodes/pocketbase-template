@@ -8,8 +8,9 @@ Deploy [PocketBase](https://pocketbase.io) to [Railway](https://railway.com) wit
 
 1. Click "Deploy on Railway" above
 2. Add a volume (see below)
-3. Generate a domain
-4. Visit `/_/` to create your admin account
+3. Add environment variables for admin account (see below)
+4. Generate a domain
+5. Login at `/_/`
 
 ## Add Persistent Storage
 
@@ -23,19 +24,26 @@ When prompted:
 - Select your PocketBase service
 - Mount path: `/data`
 
+## Create Admin Account
+
+Click your service → **Variables** tab → Add:
+
+| Variable | Value |
+|----------|-------|
+| `SUPERUSER_EMAIL` | your email |
+| `SUPERUSER_PASSWORD` | your password |
+
+The admin account is created automatically on startup.
+
+After it's working, you can remove `SUPERUSER_PASSWORD` for security (the account persists in the database).
+
 ## Generate a Domain
 
 Click your service → **Settings** tab → **Networking** → **Generate Domain**
 
 Your instance will be at `https://[generated-name].railway.app`
 
----
-
-## Create Admin Account
-
-After first deploy, go to `https://your-domain.railway.app/_/`
-
-PocketBase shows an installer screen. Enter email + password. Done.
+Login at `/_/` with the credentials you set above.
 
 ---
 
