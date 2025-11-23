@@ -4,161 +4,79 @@ Deploy [PocketBase](https://pocketbase.io) to [Railway](https://railway.com) wit
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/pocketbase)
 
-## Features
+## Quick Start
 
-- Pinned PocketBase version via `PB_VERSION` (+ optional SHA256 verification)
-- Small runtime image (multi-stage Alpine build)
-- Non-root user for security
-- Proper signal handling with `tini`
-- `$PORT`-aware entrypoint (works with Railway automatically)
+1. Click "Deploy on Railway" above
+2. Add a volume (see below)
+3. Generate a domain
+4. Visit `/_/` to create your admin account
 
-## Setup Instructions
+## Add Persistent Storage
 
-### 1. Deploy to Railway
+**Required** - without this, you lose all data on redeploy.
 
-Click the "Deploy on Railway" button above, or:
+**Right-click on the project canvas** → **Add New** → **Volume**
 
-1. Fork this repository
-2. Create a new project on [Railway](https://railway.com)
-3. Connect your forked repository
+Or: `Cmd+K` → type "volume" → **Create Volume**
 
-### 2. Configure Persistent Storage (Required)
+When prompted:
+- Select your PocketBase service
+- Mount path: `/data`
 
-**This step is critical** - PocketBase uses SQLite, so you must attach a volume to persist your data.
+## Generate a Domain
 
-1. Open the Railway Command Palette (`Cmd+K` on Mac, `Ctrl+K` on Windows/Linux)
-2. Select **"Create Volume"**
-3. Choose your PocketBase service
-4. Set the mount path to: `/data`
+Click your service → **Settings** tab → **Networking** → **Generate Domain**
 
-### 3. Generate Domain
-
-1. Go to your service **Settings**
-2. Click **"Generate Domain"** under Networking
-3. Your PocketBase instance will be available at `https://your-domain.railway.app`
-
-> **Note:** The `PORT` environment variable defaults to `8080` and is automatically handled by the container. You don't need to set it manually.
+Your instance will be at `https://[generated-name].railway.app`
 
 ---
 
-## Creating an Admin Account
+## Create Admin Account
 
-After your first deployment, you need to create a superuser (admin) account.
+After first deploy, go to `https://your-domain.railway.app/_/`
 
-### Option 1: Web Installer (Recommended)
-
-1. Navigate to `https://your-domain.railway.app/_/`
-2. On first visit, PocketBase will show an installer screen
-3. Enter your email and password to create the admin account
-
-### Option 2: Check Railway Logs
-
-Starting from PocketBase v0.23.0, the first-run installer URL with a secure token is printed in the logs:
-
-1. Go to your Railway service
-2. Click on **"Logs"**
-3. Look for a URL like: `https://your-domain/_/#/pbinstall/[JWT_TOKEN]`
-4. Click the link to complete setup
-
-### Option 3: CLI (for local development)
-
-```bash
-./pocketbase superuser create your@email.com yourpassword
-```
+PocketBase shows an installer screen. Enter email + password. Done.
 
 ---
 
-## Updating PocketBase
+## Update PocketBase
 
-When a new version of PocketBase is released, follow these steps:
-
-### Method 1: Update Dockerfile (Recommended)
-
-1. Check the [latest PocketBase release](https://github.com/pocketbase/pocketbase/releases)
-2. Update the `PB_VERSION` in your `Dockerfile`:
+1. Edit `Dockerfile`, change `PB_VERSION`:
    ```dockerfile
-   ARG PB_VERSION=0.35.0  # Change to latest version
+   ARG PB_VERSION=0.35.0
    ```
-3. Commit and push the change
-4. Railway will automatically rebuild and deploy
+2. Commit and push
+3. Railway auto-redeploys
 
-### Method 2: Manual Rebuild with Build Arg
-
-1. Go to your Railway service settings
-2. Add a build argument: `PB_VERSION=0.35.0`
-3. Trigger a redeploy
-
-### Before Updating
-
-**Always backup your data first!** See the backup section below.
-
-Read the [PocketBase Changelog](https://github.com/pocketbase/pocketbase/blob/master/CHANGELOG.md) for breaking changes, especially for major version updates.
+**Backup first.** Check the [changelog](https://github.com/pocketbase/pocketbase/blob/master/CHANGELOG.md) for breaking changes.
 
 ---
 
-## Backing Up Your Database
+## Backups
 
-### Method 1: Admin Dashboard (Easiest)
+### Via Admin UI
 
-1. Go to `https://your-domain.railway.app/_/`
-2. Navigate to **Settings** → **Backups**
-3. Click **"Create backup"**
-4. Download the ZIP file
+`/_/` → **Settings** → **Backups** → **Create backup** → Download ZIP
 
-### Method 2: Scheduled Backups
+### Scheduled Backups
 
-1. In the Admin Dashboard, go to **Settings** → **Backups**
-2. Configure a cron schedule (e.g., `0 0 * * *` for daily at midnight UTC)
-3. Optionally configure S3 storage for automatic offsite backups
+Same place, set a cron (e.g. `0 0 * * *` for daily at midnight UTC).
 
-### Method 3: S3 Storage (Recommended for Production)
+### S3 Storage
 
-1. Go to **Settings** → **Backups** → **S3 Storage**
-2. Configure your S3-compatible storage:
-   - Endpoint
-   - Bucket name
-   - Region
-   - Access Key
-   - Secret Key
-3. Backups will be automatically uploaded to S3
+**Settings** → **Backups** → configure S3 endpoint, bucket, keys. Backups upload automatically.
 
-### Method 4: API (for Automation)
+---
 
-PocketBase provides backup API endpoints (requires superuser auth):
+## Local Dev
 
 ```bash
-# List backups
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://your-domain.railway.app/api/backups
-
-# Create backup
-curl -X POST -H "Authorization: Bearer YOUR_TOKEN" \
-  https://your-domain.railway.app/api/backups
-
-# Download backup
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://your-domain.railway.app/api/backups/backup_filename.zip -o backup.zip
+# Download from https://github.com/pocketbase/pocketbase/releases
+./pocketbase serve
+# Admin UI: http://127.0.0.1:8080/_/
 ```
 
-### Backup Best Practices
-
-- **Schedule regular backups** using the built-in cron feature
-- **Use S3 storage** for offsite backups (supports any S3-compatible service)
-- **Test your backups** by restoring to a local instance periodically
-- **Backup before updates** - always create a backup before upgrading PocketBase
-
----
-
-## Local Development
-
-1. Download PocketBase from the [releases page](https://github.com/pocketbase/pocketbase/releases)
-2. Extract and run:
-   ```bash
-   ./pocketbase serve
-   ```
-3. Access the admin UI at `http://127.0.0.1:8080/_/`
-
-Or use Docker:
+Or with Docker:
 
 ```bash
 docker build -t pocketbase .
@@ -170,21 +88,14 @@ docker run -p 8080:8080 -v $(pwd)/pb_data:/data pocketbase
 ## Project Structure
 
 ```
-.
-├── Dockerfile          # Multi-stage PocketBase container
-├── entrypoint.sh       # PORT-aware startup script
-├── railway.json        # Railway deployment settings
-├── .dockerignore       # Docker build exclusions
-├── pb_migrations/      # Database migrations (auto-generated)
-├── pb_hooks/           # Custom JavaScript hooks
-└── README.md
+├── Dockerfile        # Multi-stage build, non-root user, tini
+├── entrypoint.sh     # Reads $PORT, runs as pocketbase user
+├── railway.json      # Railway config
+├── pb_migrations/    # Your migrations
+├── pb_hooks/         # Your hooks
 ```
 
----
+## Links
 
-## Resources
-
-- [PocketBase Documentation](https://pocketbase.io/docs/)
-- [PocketBase GitHub](https://github.com/pocketbase/pocketbase)
-- [Railway Documentation](https://docs.railway.com/)
+- [PocketBase Docs](https://pocketbase.io/docs/)
 - [Railway Volumes Guide](https://docs.railway.com/guides/volumes)
