@@ -76,6 +76,37 @@ Same place, set a cron (e.g. `0 0 * * *` for daily at midnight UTC).
 
 ---
 
+## Email Setup (Resend)
+
+To enable email verification, password resets, etc.
+
+### 1. Get Resend API Key
+
+1. Sign up at [resend.com](https://resend.com)
+2. Go to [resend.com/domains](https://resend.com/domains)
+3. Add your domain and add the DNS records they provide (DKIM, SPF)
+4. Wait for verification (usually a few minutes)
+5. Go to **API Keys** and create one
+
+### 2. Configure PocketBase
+
+In PocketBase admin (`/_/`) → **Settings** → **Mail settings**:
+
+| Field | Value |
+|-------|-------|
+| Sender name | Your App Name |
+| Sender address | `support@yourdomain.com` |
+| SMTP server host | `smtp.resend.com` |
+| Port | `587` (or `2587` if 587 doesn't work, 2587 is the one that worked for me.) |
+| Username | `resend` |
+| Password | Your Resend API key |
+
+Click **Send test email** to verify it works.
+
+**Note:** You must use a verified domain in the sender address. `@gmail.com` or `@example.com` won't work.
+
+---
+
 ## Local Dev
 
 ```bash
